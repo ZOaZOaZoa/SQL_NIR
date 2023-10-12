@@ -33,3 +33,17 @@ def get_column_names(bd_file, table_name):
     con.close()
 
     return columns
+
+def show_table(bd_file, table_name):
+    con = sqlite3.connect(bd_file)
+    cur = con.cursor()
+    cur.execute(f'SELECT * FROM {table_name}')
+    data = cur.fetchall()
+    cur.close()
+    con.close()
+
+    print('\nДанные из таблицы', bd_file)
+    for row in data:
+        print(row, '\n')
+
+    
