@@ -1,7 +1,6 @@
 import os
 import DataBase as db
-
-
+import IO_funcs as io
 
 def main():
     #Выбор и открытие базы данных
@@ -12,44 +11,50 @@ def main():
 
         print('Файл', bd_file, 'не найден')    
 
+    DataBase = db.DataBase(bd_file)
     #Получение информации о таблицах
-    tables = db.get_tables_names(bd_file)
-    if not tables:
+    if not DataBase.tables:
         print('В данном файле не найдено таблиц')
         exit()
 
     print('-'*100)
     print('Найденные таблицы в', bd_file, '\n')
 
-    for table in tables:
+    for table in DataBase.tables:
         print(f'Таблица {table}')
-        print('Таблица содержит следующие поля:', str(db.get_column_names(bd_file, table))[1:-1], '\n')
+        print('Содержащиеся поля:', str(DataBase.get_column_names(table))[1:-1], '\n')
 
-    #Выбор таблицы с которой будет проводиться работа
-    selected_table = tables[0]
-    if len(tables) > 1:
-        while True:
-            selected_table = input('Введите таблицу, с которой будете работать: ')
-            if selected_table in tables:
-                break
-
-            print('В данной базе данных таблицы', selected_table, 'нет')
-    print(f'Для работы выбрана таблица {selected_table}')
+    #Выбор таблицы с которой будет проводиться работа. По умолчанию первая из DataBase.tables
+    if len(DataBase.tables) > 1:
+        DataBase.select_table()
 
     #Основная работа с базой данных
     actions = {
-        '1': db.show_table,
+        '1': db.DataBase.show_table,
+        '2': db.DataBase.save_table,
+        '3': db.DataBase.get_filtered, 
+        '4': db.DataBase.select_table,
         }
+    
     
     close_program = False
     while not close_program:
-        ans = input('Выберите действие:\n1 - Отображение содержимого таблицы на экране\n')
+        print(f'''Для работы выбрана таблица {DataBase.selected_table}. Выберите действие:''')
+        actions_descr = {
+            '1': 'Отображение содержимого таблицы на экране',
+            '2': 'Сохранение содержимого таблицы в файл',
+            '3': 'Отображение содержимого таблицы на экране с учетом фильтра',
+            'q': 'Выйти из программы'
+        }
+        if len(DataBase.tables) > 1:
+            actions_descr['4'] = 'Выбрать другую таблицу'
+        ans = io.user_select_from_list(actions_descr)
 
         if ans == 'q':
             break
 
         if ans in actions.keys():
-            actions[ans](bd_file, selected_table)
+            actions[ans](DataBase)
             continue
         
         print('Опции', ans, 'в списке нет. Введите цифру соответствующую действию или напишите q, чтобы выйти')
