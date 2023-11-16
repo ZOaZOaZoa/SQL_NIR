@@ -33,7 +33,10 @@ def main():
         '1': db.DataBase.show_table,
         '2': db.DataBase.save_table,
         '3': db.DataBase.get_filtered, 
-        '4': db.DataBase.select_table,
+        '4': db.DataBase.change_values,
+        '5': db.DataBase.delete_values,
+        '6': db.DataBase.insert_values,
+        '7': db.DataBase.select_table,
         }
     
     
@@ -44,10 +47,13 @@ def main():
             '1': 'Отображение содержимого таблицы на экране',
             '2': 'Сохранение содержимого таблицы в файл',
             '3': 'Отображение содержимого таблицы на экране с учетом фильтра',
+            '4': 'Изменение значений в базе данных',
+            '5': 'Удаление значений из базы данных',
+            '6': 'Внесение новой строки в базу данных',
             'q': 'Выйти из программы'
         }
         if len(DataBase.tables) > 1:
-            actions_descr['4'] = 'Выбрать другую таблицу'
+            actions_descr['7'] = 'Выбор другой таблицы'
         ans = io.user_select_from_list(actions_descr)
 
         if ans == 'q':

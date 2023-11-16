@@ -12,9 +12,9 @@ def user_select_table(DataBase):
             print('В данной базе данных таблицы', selected_table, 'нет')
     return selected_table
 
-def user_select_from_list(choose_descr: dict, prompt='Выберите действие:', compact_form = False):
+def user_select_from_list(choose_from, prompt='Выберите действие:', compact_form = False):
     '''Выбор пользователем варианта из предоставленных в списке
-    choose_descr - словарь, с вариантами выбора в качестве ключей и их описаниями в качестве значений.
+    choose_from - словарь, с вариантами выбора в качестве ключей и их описаниями в качестве значений. При заданном compact_form=True choose_from это список вариантов
     prompt - приглашение к вводу перед перечислением вариантов выбора.
     compact_form - Если True то вывод происходит в компактном виде. Если False, то на каждый вариант используется целая строка и соответствующее ей описание'''
     while True:
@@ -22,20 +22,20 @@ def user_select_from_list(choose_descr: dict, prompt='Выберите дейс�
             print(prompt, end='')
 
         if compact_form:
-            str_variants = ', '.join(sorted(choose_descr.keys()))
+            str_variants = ', '.join(choose_from)
             ans = input(f'Варианты. {str_variants}: ')
-            if ans not in choose_descr.keys():
+            if ans not in choose_from:
                 print(f'Варианта {ans} в списке действий нет.')
                 continue
 
             return ans
 
         print()
-        for choose in sorted(choose_descr.keys()):
-            print(f'{choose} - {choose_descr[choose]}')
+        for choose in sorted(choose_from.keys()):
+            print(f'{choose} - {choose_from[choose]}')
         
         ans = input()
-        if ans not in choose_descr.keys():
+        if ans not in choose_from.keys():
             print(f'Варианта {ans} в списке действий нет.')
             continue
         
@@ -58,7 +58,6 @@ def user_get_save_file_name():
                 continue
         
         return ans
-        
 
 def print_table(data, columns):
     assert len(data[0]) == len(columns)
@@ -75,3 +74,62 @@ def print_table(data, columns):
     pd.reset_option('display.width')
     pd.reset_option('display.max_columns')
 
+def user_constuct_simplest_filter(DataBase, table_name = None):
+        '''Пользовательский ввод простейшего фильтра вида:
+        <столбец> <сравнение> <значение/столбец>'''
+        if table_name is None:
+            table_name = DataBase.selected_table
+        
+        column_names = DataBase.get_column_names(table_name)
+
+        selected_column = user_select_from_list(column_names, 'Введите столбец по которому будет проводиться фильтрация. ', compact_form=True)
+
+        relation = user_select_from_list(['>', '>=', '=', '<=', '<'], 'Введите логический фильтр. ', compact_form=True)   
+
+        while True:
+            value = input('Введите значения для сравнения: ')
+            if value.isnumeric():
+                break
+
+            if value in column_names:
+                break
+
+            if value[0] == value[-1] and (value[0] == '"' or value[0] == "'"):
+                break 
+            
+            print(f'Значение для сравнения должно быть числом, названием одного из столбцов или обернуто в кавычки. Получено {value}')
+
+        return selected_column + relation + value
+
+def user_construct_filter(DataBase, table_name = None):
+    '''Пользовательский ввод фильтра вида:
+    <простейший фильтр> <и/или> <простейший фильтр> <и/или> ...'''
+    if table_name is None:
+        table_name = DataBase.selected_table
+    
+    constructing = True
+    filter = ''
+    while constructing:
+        filter += user_constuct_simplest_filter(DataBase, table_name)
+        
+        while True:
+            print(f'\nТекущий фильтр: {filter}')
+            print('Выберите дейсвие:\n')
+            print('1 - Добавление логического оператора (и/или)')
+            print('2 - Завершить создание фильтра')
+            ans = input()
+            if ans not in ['1', '2']:
+                print(f'Варианта {ans} среди данных действий нет')
+                continue
+                
+            if ans == '2':
+                constructing = False
+                break
+
+            if ans == '1':
+                log_dict = ['or', 'and']
+                logical = user_select_from_list(log_dict, prompt='Введите логический оператор. ', compact_form=True)
+                
+                filter += f' {logical} '
+                filter += user_constuct_simplest_filter(DataBase, table_name)
+    return filter
