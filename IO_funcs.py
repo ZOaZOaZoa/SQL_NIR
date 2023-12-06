@@ -1,3 +1,4 @@
+#IO_funcs.py
 import os
 import pandas as pd
 import DataBase as db
@@ -60,6 +61,9 @@ def user_get_save_file_name():
         return ans
 
 def print_table(data, columns):
+    if len(data) == 0:
+        print('В таблице нет данных')
+        return
     assert len(data[0]) == len(columns)
 
     pd.set_option('display.max_rows', None)

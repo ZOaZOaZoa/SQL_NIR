@@ -1,3 +1,4 @@
+#DataBase.py
 import sqlite3
 import IO_funcs as io
 import pandas as pd
@@ -14,7 +15,7 @@ class DataBase:
         self.tables = self.get_tables_names()
         if self.tables:
             self.selected_table = self.tables[0]
-            columns = self.get_column_names(self.selected_table)
+            self.columns = self.get_column_names(self.selected_table)
 
     def get_tables_names(self):
         '''Получение названий таблиц в БД bd_file'''
@@ -39,6 +40,7 @@ class DataBase:
         
         if table_name is None:
             self.selected_table = io.user_select_table(self)
+            self.columns = self.get_column_names(self.selected_table)
             return
         
         assert table_name in self.tables
@@ -48,7 +50,7 @@ class DataBase:
     def get_column_names(self, table_name = None):
         '''Получение списка названий колонок таблицы table_name из БД bd_file'''
 
-        if (table_name is None or table_name == self.selected_table) and self.columns is not None:
+        if table_name is None and self.columns is not None:
             #Возвращение столбцов выбранной таблицы
             return self.columns
 
